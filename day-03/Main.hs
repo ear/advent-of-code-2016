@@ -1,7 +1,17 @@
 module Main where
 
-main = print . length . filter triangle =<< readInput
+import Data.List ( transpose, unfoldr )
 
-readInput = map (map read) . map words . lines <$> readFile "input.txt"
+main =
+  do input <- readInput
+     print . length . filter triangle $ input
+     print . length . filter triangle $ chopEvery 3 . concat . transpose $ input
+
+readInput = map (map read . words) . lines <$> readFile "input.txt"
 
 triangle [a,b,c] = a+b > c && b+c > a && c+a > b
+
+chopEvery n = unfoldr chop
+  where
+    chop [] = Nothing
+    chop xs = Just (take n xs, drop n xs)
