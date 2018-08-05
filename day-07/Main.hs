@@ -5,17 +5,18 @@ module Main where
 
 import Data.List ( unfoldr, tails )
 
-data IPv7 = IPv7 { addrs :: [String], hypernets :: [String] }
+data IPv7 = IPv7 { supernets :: [String], hypernets :: [String] }
 
 empty = IPv7 [] []
 
 addAddr, addHype :: String -> IPv7 -> IPv7
-addAddr addr ip@IPv7{..} = ip { addrs = addr:addrs }
+addAddr addr ip@IPv7{..} = ip { supernets = addr:supernets }
 addHype addr ip@IPv7{..} = ip { hypernets = addr:hypernets }
 
 main =
-  do input <- readFile "input.txt"
-     print . length . filter valid . map fromString . lines $ input
+  do input <- map fromString . lines <$> readFile "input.txt"
+     print . length . filter tls $ input
+     print . length . filter ssl $ input
 
 fromString :: String -> IPv7
 fromString = go False empty
@@ -28,6 +29,15 @@ fromString = go False empty
                        (xs0,[])   -> addHype xs0 ip
                        (xs0,_:ys) -> go False (addHype xs0 ip) ys
 
-valid IPv7{..} = any abba addrs && all (not . abba) hypernets
+tls IPv7{..} = any abba supernets && all (not . abba) hypernets
 
 abba = any (\case (a:b:c:d:_) -> a/=b && a==d && b==c; _ -> False) . tails
+
+abas, babs :: IPv7 -> [(Char,Char)]
+abas IPv7{..} = supernets >>= tails >>= aba
+babs IPv7{..} = hypernets >>= tails >>= aba
+
+aba (a:b:c:_) | a/=b && a==c = [(a,b)]
+aba _ = []
+
+ssl ip = any (\(x,y) -> (y,x) `elem` babs ip) (abas ip)
