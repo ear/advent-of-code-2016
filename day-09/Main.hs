@@ -2,15 +2,16 @@
 
 module Main where
 
-import Text.Parsec
-import Text.Parsec.Char
+import Text.Parsec ( parse, many1, try, (<|>), digit, upper, char )
+import Text.Parsec.Char ( anyChar )
+import Text.Parsec.String ( Parser )
 
-import Debug.Trace
+import Debug.Trace ( traceShow )
 
 import Control.Monad ( replicateM )
 
 main = do
-  -- tests
+  tests
   print . length . decompress =<< readFile "input.txt"
 
 tests = mapM_ (print . test) =<< (map words . lines) <$> readFile "tests.txt"
@@ -24,10 +25,10 @@ decompress input =
     Right res -> res
     Left err -> traceShow err ""
 
-num :: Parsec String () Int
+num :: Parser Int
 num = read @Int <$> many1 digit
 
-p :: Parsec String () String
+p :: Parser String
 p = fmap concat $ many1 $
       try (many1 upper)
       <|>
