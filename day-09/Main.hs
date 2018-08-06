@@ -9,7 +9,9 @@ import Debug.Trace
 
 import Control.Monad ( replicateM )
 
-main = tests
+main = do
+  -- tests
+  print . length . decompress =<< readFile "input.txt"
 
 tests = mapM_ (print . test) =<< (map words . lines) <$> readFile "tests.txt"
 
