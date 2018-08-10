@@ -171,3 +171,5 @@ main = do
   let ans = head $ dropWhile (\Network{..} -> _answer == Nothing) history
   -- print $ ans
   print . _answer $ ans
+  print . _outputs $ ans
+  print . product . catMaybes . (\Network{..} -> Map.elems $ Map.restrictKeys _outputs (Set.fromList [0,1,2])) $ ans
