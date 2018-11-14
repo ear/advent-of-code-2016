@@ -3,12 +3,12 @@
 module Main where
 
 import Data.Char ( toUpper )
-import Control.Monad ( void )
+import Control.Monad ( void, guard )
 
 import Text.Parsec ( sepEndBy1, newline, string, many1, alphaNum, try, (<|>) )
 import Text.Parsec.String ( Parser, parseFromFile )
 
-import Data.List ( nub, sort, partition, null, (\\) )
+import Data.List ( nub, sort, partition, null, (\\), foldl' )
 
 import Data.Set ( Set )
 import qualified Data.Set as Set
@@ -17,6 +17,52 @@ import Data.Map.Strict ( Map )
 import qualified Data.Map.Strict as Map
 
 import Data.Bifunctor
+
+import Debug.Trace
+
+next s@State{..} = do
+  e <- nextLevels
+  cs <- candidates
+  let s' = foldl' (move e) s cs
+  guard $ safe s'
+  void $! return $! traceShowId cs
+  return s'
+  where
+
+    nextLevels = filter (>0) [_e + 1, _e - 1]
+
+    candidates :: [[Int]]
+    candidates = singlesAndPairs $ Set.union _fchips _fgens
+      where
+        Floor{..} = _floors Map.! _e
+
+    move :: Int -> State -> Int -> State
+    move e s c = s
+      { _e = e
+      , _floors = Map.adjust (floorAdd c) e $ Map.adjust (floorRemove c) _e _floors
+      }
+
+    floorRemove, floorAdd :: Int -> Floor -> Floor
+    floorRemove c f@Floor{..}
+      | c `Map.member` _chips = f { _fchips = c `Set.delete` _fchips }
+      | otherwise             = f { _fgens  = c `Set.delete` _fgens  }
+
+    floorAdd c f@Floor{..}
+      | c `Map.member` _chips = f { _fchips = c `Set.insert` _fchips }
+      | otherwise             = f { _fgens  = c `Set.insert` _fgens  }
+
+singles, pairs, singlesAndPairs :: Ord a => Set a -> [[a]]
+
+singles = map pure . Set.toAscList
+
+pairs s = do
+  x <- Set.toAscList s
+  let s' = Set.filter (>x) s
+  y <- Set.toAscList s'
+  return [x,y]
+
+singlesAndPairs = (++) <$> singles <*> pairs
+
 
 data Floor = Floor
   { _fchips :: Set Int            -- { deviceId }
