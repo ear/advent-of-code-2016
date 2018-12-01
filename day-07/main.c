@@ -5,13 +5,15 @@
 
 #define MAXABA 1024
 
+struct ab
+{
+	char a;
+	char b;
+};
+
 struct aba
 {
-	struct
-	{
-		char a;
-		char b;
-	} ab[MAXABA];
+	struct ab ab[MAXABA];
 	size_t count;
 };
 
@@ -170,19 +172,19 @@ isSSL (char * str)
 size_t
 collectABA (struct aba * s, char * begin, char * end)
 {
+	struct ab * ab = &(s->ab[s->count]);
 	char * p = begin;
 
-	for (size_t i = 0; p != end; ++i, ++p)
+	while (p < end - 2)
 	{
-		if (i > 1)
+		if ( *p == *(p+2) && *p != *(p+1) )
 		{
-			if ( *(p) == *(p-2) && *(p) != *(p-1) )
-			{
-				s->ab[s->count].a = *p;
-				s->ab[s->count].b = *(p-1);
-				++s->count;
-			}
+			ab->a = *p;
+			ab->b = *(p+1);
+			++ab;
+			++s->count;
 		}
+		++p;
 	}
 
 //	printf("%.10s...\t%zu\n", str, s->count);
