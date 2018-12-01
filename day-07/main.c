@@ -5,7 +5,7 @@
 
 #define MAXABA 1024
 
-struct ssl
+struct aba
 {
 	struct
 	{
@@ -16,7 +16,7 @@ struct ssl
 };
 
 void
-dump (struct ssl * s)
+dump (struct aba * s)
 {
 	for (size_t i = 0; i < s->count; ++i)
 		printf("\t%c%c%c", s->ab[i].a, s->ab[i].b, s->ab[i].a);
@@ -56,7 +56,7 @@ bool
 isSSL (char *);
 
 size_t
-collectABA (struct ssl *, char *);
+collectABA (struct aba *, char *, char *);
 
 int
 main (void)
@@ -142,8 +142,7 @@ countSSL (struct state * s)
 bool
 isSSL (char * str)
 {
-	struct ssl s_out = { 0 };
-	struct ssl s_in  = { 0 };
+	struct aba out = { 0 }, in = { 0 };
 
 	char * start = str;
 	while (*start)
@@ -151,38 +150,29 @@ isSSL (char * str)
 		char * end = start;
 		while (*end != '\0' && *end != '[' && *end != ']')
 			++end;
-		if (*end == ']')
-		{
-			*end = '\0';
-			collectABA(&s_in, start);
-		}
-		else
-		{
-			*end = '\0';
-			collectABA(&s_out, start);
-		}
+		collectABA( (*end == ']') ? &in : &out, start, end );
 		start = ++end;
 	}
-	//printf("%.20s...\t%zu\t%zu\n", str, s_out.count, s_in.count);
-	//dump(&s_out);
-	//dump(&s_in);
+	//printf("%.20s...\t%zu\t%zu\n", str, out.count, in.count);
+	//dump(&out);
+	//dump(&in);
 
-	if (s_out.count && s_in.count)
-		for (size_t i = 0; i < s_out.count; ++i)
-			for (size_t j = 0; j < s_in.count; ++j)
-				if (  (s_out.ab[i].a == s_in.ab[j].b)
-				   && (s_out.ab[i].b == s_in.ab[j].a) )
+	if (out.count && in.count)
+		for (size_t i = 0; i < out.count; ++i)
+			for (size_t j = 0; j < in.count; ++j)
+				if (  (out.ab[i].a == in.ab[j].b)
+				   && (out.ab[i].b == in.ab[j].a) )
 					return true;
 
 	return false;
 }
 
 size_t
-collectABA (struct ssl * s, char * str)
+collectABA (struct aba * s, char * begin, char * end)
 {
-	char * p = str;
+	char * p = begin;
 
-	for (size_t i = 0; *p != '\0'; ++i, ++p)
+	for (size_t i = 0; p != end; ++i, ++p)
 	{
 		if (i > 1)
 		{
