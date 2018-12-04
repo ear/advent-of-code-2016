@@ -147,9 +147,9 @@ isSSL (char * str)
 	struct aba out = { 0 }, in = { 0 };
 
 	char * start = str;
+	char * end   = start;
 	while (*start)
 	{
-		char * end = start;
 		while (*end != '\0' && *end != '[' && *end != ']')
 			++end;
 		collectABA( (*end == ']') ? &in : &out, start, end );
