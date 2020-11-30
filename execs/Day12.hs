@@ -11,8 +11,10 @@ import Data.Map (Map)
 import qualified Data.Map as M
 
 main =
-  do vm <- run . load . parse <$> getRawInput 12
-     print (_regs vm M.! 'a')
+  do vm1 <- load . parse <$> getRawInput 12
+     print (_regs (run vm1) M.! 'a')
+     let vm2 = vm { _regs = M.insert 'c' 1 (_regs vm) }
+     print (_regs (run vm2) M.! 'a')
   where
     parse = map (instr . words) . lines
     instr ["cpy", src, dst]
